@@ -77,6 +77,9 @@ ol.list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
 .btn.kakao:hover{background:var(--bg)}
 .btn.guide{background:var(--l7-soft);color:var(--l7);border:1px solid transparent}
 .btn.guide:hover{border-color:var(--l7)}
+.btn.pdfpage{background:var(--l7-soft);color:var(--l7);border:1px solid var(--l7)}
+.btn.pdfpage span{font:600 11px var(--mono);opacity:.75}
+.btn.pdfpage:hover{background:var(--l7);color:var(--surface)}
 .btn.result{border:1px dashed var(--l7);color:var(--l7)}
 .btn.result:hover{background:var(--l7-soft)}
 .time em{font-style:normal;font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:4px;padding:1px 5px;white-space:nowrap}
@@ -143,6 +146,7 @@ footer{margin-top:28px;font-size:13px;color:var(--muted);display:grid;gap:6px;ma
     <span>조회일 2026년 11월 4일, 카카오맵 기준입니다. 출발 시각·배차에 따라 10분 안팎 달라질 수 있고, 네이버 지도는 경로 계산 방식이 달라 시간이 조금 다르게 나올 수 있습니다.</span>
     <span>경로2부터는 "지하철만" 또는 "버스만" 쓸 때 가장 빠른 경로이며, 1시간 30분을 넘는 경로와 심야버스 경로는 적지 않았습니다. 지하철 칸은 그 구간에서 타는 노선의 색, 버스 칸은 회색입니다.</span>
     <span>요금은 카카오맵이 보여 준 성인 교통카드 편도 요금입니다. 청소년은 할인되어 더 적게 나오고, 현금으로 내면 더 비쌉니다. "1,750~3,200원"처럼 범위로 적힌 곳은 같은 정류장에서 일반버스를 타느냐 광역(빨간)버스를 타느냐에 따라 달라지는 경우입니다.</span>
+    <span>"요강 속 결과" 탭은 모집요강 PDF에 전년도 입시결과가 실린 학교(인덕대·경복대·동남보건대·부천대·안산대·연성대·한국관광대·인하공업전문대)에만 있고, 누르면 PDF의 그 쪽이 바로 열립니다. 탭 오른쪽 숫자는 PDF 파일의 쪽 번호입니다.</span>
     <span>전년도 결과 버튼은 각 학교 입학처에 올라온 2026학년도 입시결과 페이지로 연결됩니다. 1차·2차가 따로 있는 학교는 버튼을 둘로 나눴고, 한 페이지에 모아 둔 학교는 "전년도 입시결과" 하나만 있습니다. 경민대는 입학처의 결과 PDF 파일로 바로 연결됩니다. 농협대·폴리텍은 입학처에서 결과 페이지를 찾지 못해 버튼이 없습니다.</span>
     <span>모집요강 버튼은 각 학교 입학처 페이지로 연결됩니다. "수시2차 모집요강"은 2차 전용 페이지이고, "수시 모집요강"은 1·2차가 한 요강에 들어 있거나 모집요강 메인 페이지라 그 안에서 2차 내용을 찾아야 합니다. 폴리텍 3개 캠퍼스는 폴리텍 입시포털의 통합 모집요강으로, 농협대는 학교 입학안내 페이지로 연결됩니다.</span>
   </footer>
@@ -291,7 +295,6 @@ const RS={
  "동남보건대학교":{all:"https://ipsi.dongnam.ac.kr/ipsi/5639/subview.do"},
  "부천대학교":{s1:"https://ipsi.bc.ac.kr/ipsi/susi01/results-application-2026-s1.do",s2:"https://ipsi.bc.ac.kr/ipsi/susi02/results-application-2026-s2.do"},
  "안산대학교":{s1:"https://iphak.ansan.ac.kr/iphak/content/11",s2:"https://iphak.ansan.ac.kr/iphak/content/12"},
- "연성대학교":{all:"https://ipsi.yeonsung.ac.kr/ipsi/cust/cnts/index.do?&menuId=MN000000000000035&subMenuId=MN000000000000957&menuAuth=&paramContentsId=MC000000000003668",label:"전년도 입시결과 (요강 붙임4)"},
  "청강문화산업대학교":{all:"https://ipsi.ck.ac.kr/bbs/board.php?bo_table=notice&wr_id=882"},
  "용인예술과학대학교":{s1:"https://www.yc.ac.kr/enter/susi1-result-in.do",s2:"https://www.yc.ac.kr/enter/susi2-result-in.do"},
  "한국관광대학교":{all:"http://iphak.ktc.ac.kr/page/admissions/resultPreYear"},
@@ -299,6 +302,22 @@ const RS={
  "재능대학교":{all:"https://apply.jeiu.ac.kr:4443/apply/applyResult.do"},
  "한림성심대학교":{all:"https://ipsi.hsc.ac.kr/ipsi/contents.do?key=5072"}
 };
+// 모집요강 PDF 안에 전년도 입시결과가 실린 학교: [PDF(또는 학교 PDF 뷰어) 주소, [[탭 이름, PDF 쪽 번호], ...]]
+const KBU_PDF="https://kbu.ac.kr/resources/_Plugin/pdfViewer_1.0/full/viewer.html?file=/attach/CONTENTS/PDF/ContentMgr/PDFViewer/2026/9/9jLI5WacuGaZEjMz.PDF";
+const KBU_TABS=[["요강 속 1차 결과",59],["요강 속 2차 결과",61]];
+const PG={
+ "인덕대학교":["https://ipsi.induk.ac.kr/resources/PV/(%EC%95%88%EB%82%B4)%202027%ED%95%99%EB%85%84%EB%8F%84%20%EC%9D%B8%EB%8D%95%EB%8C%80%ED%95%99%EA%B5%90%20%EC%88%98%EC%8B%9C.%EC%A0%95%EC%8B%9C%EB%AA%A8%EC%A7%91%EC%9A%94%EA%B0%95.pdf",[["요강 속 수시 결과",66]]],
+ "경복대학교 남양주캠퍼스":[KBU_PDF,KBU_TABS],
+ "경복대학교 포천캠퍼스":[KBU_PDF,KBU_TABS],
+ "동남보건대학교":["https://ipsi.dongnam.ac.kr/sites/ipsi/files/2027%ED%95%99%EB%85%84%EB%8F%84%20%EC%8B%A0%EC%9E%85%EC%83%9D%20%EB%AA%A8%EC%A7%91%EC%9A%94%EA%B0%95.pdf",[["요강 속 1·2차 결과",30]]],
+ "부천대학교":["https://ipsi.bc.ac.kr/pdf/web/viewer.html?file=%2Fcms%2FetcResourceDown.do%3Fsite%3D%24cms%24JYBwzsQ%26key%3D%24cms%24EwBmHYH0CEGEFVIEsAOBnJkDmBXJATAUwDoV8AzIA",[["요강 속 1차 결과",27],["요강 속 2차 결과",31]]],
+ "안산대학교":["https://iphak.ansan.ac.kr/upload/ansan/iphak/preferences/2027/MOZIP/0727163251876.pdf",[["요강 속 1차 결과",23],["요강 속 2차 결과",25]]],
+ "연성대학교":["https://ipsi.yeonsung.ac.kr/ipsi/pdffile/pdf/FI000000000006166/2027%EC%97%B0%EC%84%B1%EB%8C%80%ED%95%99%EA%B5%90-%EB%AA%A8%EC%A7%91%EC%9A%94%EA%B0%95-%EB%82%B1%EC%9E%A5.pdf",[["요강 속 전년도 결과",50]]],
+ "한국관광대학교":["http://iphak.ktc.ac.kr/static/js/pdfjs/web/2027%ED%95%99%EB%85%84%EB%8F%84%20%ED%95%9C%EA%B5%AD%EA%B4%80%EA%B4%91%EB%8C%80%ED%95%99%EA%B5%90%20%EC%8B%A0%EC%9E%85%EC%83%9D%20%EB%AA%A8%EC%A7%91%EC%9A%94%EA%B0%95.pdf",[["요강 속 1·2차 결과",78]]],
+ "인하공업전문대학":["https://ipsi.inhatc.ac.kr/Web-home/plugin/pdfjs/web/viewer.html?file=%2Fviewer%2Fipsi%2F14%2FfileDown1%2FfileDownload.do",[["요강 속 1차 결과",17],["요강 속 2차 결과",18]]]
+};
+function pageTabs(n){const g=PG[n];if(!g)return"";
+  return g[1].map(([l,p])=>`<a class="btn pdfpage" href="${esc(g[0]+"#page="+p)}" target="_blank" rel="noopener" title="모집요강 PDF ${p}쪽이 열립니다">${l}<span>${p}쪽</span></a>`).join("")}
 function resultBtns(n){const r=RS[n];if(!r)return"";const b=(u,l)=>`<a class="btn result" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`;
   return r.all?b(r.all,r.label||"전년도 입시결과"):(r.s1?b(r.s1,"전년도 1차 결과"):"")+(r.s2?b(r.s2,"전년도 2차 결과"):"")}
 // 네이버 지도는 웹 메르카토르(EPSG:3857) 좌표를 씁니다
@@ -336,6 +355,7 @@ function render(){
         <a class="btn naver" href="${naverUrl(c)}" target="_blank" rel="noopener">네이버 길찾기</a>
         <a class="btn kakao" href="${kakaoUrl(c)}" target="_blank" rel="noopener">카카오맵</a>
         ${Y[c.n]?`<a class="btn guide" href="${esc(Y[c.n][0])}" target="_blank" rel="noopener">${Y[c.n][1]?"수시2차 모집요강":"수시 모집요강"}</a>`:""}
+        ${pageTabs(c.n)}
         ${resultBtns(c.n)}
       </div>
     </div>
