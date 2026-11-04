@@ -147,7 +147,7 @@ footer{margin-top:28px;font-size:13px;color:var(--muted);display:grid;gap:6px;ma
     <span>경로2부터는 "지하철만" 또는 "버스만" 쓸 때 가장 빠른 경로이며, 1시간 30분을 넘는 경로와 심야버스 경로는 적지 않았습니다. 지하철 칸은 그 구간에서 타는 노선의 색, 버스 칸은 회색입니다.</span>
     <span>요금은 카카오맵이 보여 준 성인 교통카드 편도 요금입니다. 청소년은 할인되어 더 적게 나오고, 현금으로 내면 더 비쌉니다. "1,750~3,200원"처럼 범위로 적힌 곳은 같은 정류장에서 일반버스를 타느냐 광역(빨간)버스를 타느냐에 따라 달라지는 경우입니다.</span>
     <span>"요강 속 전년도 결과" 탭은 모집요강 PDF에 전년도 입시결과가 실린 학교(인덕대·경복대·동남보건대·부천대·안산대·연성대·한국관광대·인하공업전문대)에만 있고, 누르면 결과가 시작되는 쪽이 바로 열립니다. 수시1차·2차·정시 결과는 보통 그 뒤 몇 쪽에 이어집니다. 탭 오른쪽 숫자는 PDF 파일의 쪽 번호입니다.</span>
-    <span>전년도 결과 버튼은 각 학교 입학처에 올라온 2026학년도 입시결과 페이지로 연결됩니다. 1차·2차가 따로 있는 학교는 버튼을 둘로 나눴고, 한 페이지에 모아 둔 학교는 "전년도 입시결과" 하나만 있습니다. 경민대는 입학처의 결과 PDF 파일로 바로 연결됩니다. 농협대·폴리텍은 입학처에서 결과 페이지를 찾지 못해 버튼이 없습니다.</span>
+    <span>전년도 결과 버튼은 각 학교 입학처에 올라온 2026학년도 입시결과 페이지로 연결됩니다. 1차·2차가 따로 있는 학교는 버튼을 둘로 나눴고, 한 페이지에 모아 둔 학교는 "전년도 입시결과" 하나만 있습니다. 경민대는 입학처의 결과 PDF 파일로 바로 연결되고, 폴리텍 3개 캠퍼스는 폴리텍 통합 입시결과 조회 화면으로 연결됩니다(조회 화면에서 캠퍼스·학과를 고르면 됩니다). 농협대는 입학처에서 결과 페이지를 찾지 못해 버튼이 없습니다.</span>
     <span>모집요강 버튼은 각 학교 입학처 페이지로 연결됩니다. "수시2차 모집요강"은 2차 전용 페이지이고, "수시 모집요강"은 1·2차가 한 요강에 들어 있거나 모집요강 메인 페이지라 그 안에서 2차 내용을 찾아야 합니다. 폴리텍 3개 캠퍼스는 폴리텍 입시포털의 통합 모집요강으로, 농협대는 학교 입학안내 페이지로 연결됩니다.</span>
   </footer>
 </div>
@@ -278,10 +278,15 @@ const Y={
 };
 // 전년도(2026학년도) 입시결과. s1=수시1차, s2=수시2차, all=한 페이지에 모아 둔 곳
 const KBU={s1:"https://kbu.ac.kr/efms/CMS/Contents/Contents.do?mCode=MN162",s2:"https://kbu.ac.kr/efms/CMS/Contents/Contents.do?mCode=MN163"};
+// 폴리텍 3개 캠퍼스는 폴리텍 통합 입시결과 조회 화면 하나로 연결
+const POLY_RS={all:"https://e.kopo.ac.kr/nx/index_external.html?bWVudUlkPU0wMDU1NDgmbG9naW5HYm49ZXgmc2hvd1RpdGxlPWZhbHNl"};
 const RS={
  "서일대학교":{s1:"https://www.seoil.ac.kr/bbs/ipsi/164/406157/artclView.do",s2:"https://www.seoil.ac.kr/bbs/ipsi/164/406160/artclView.do"},
  "삼육보건대학교":{s1:"https://exam.shu.ac.kr/cms/FrCon/index.do?MENU_ID=250",s2:"https://exam.shu.ac.kr/cms/FrCon/index.do?MENU_ID=260"},
  "인덕대학교":{s1:"https://ipsi.induk.ac.kr/IPSI/cms/CM_CN01_CON/index.do?MENU_SN=243",s2:"https://ipsi.induk.ac.kr/IPSI/cms/CM_CN01_CON/index.do?MENU_SN=244"},
+ "한국폴리텍대학 서울정수캠퍼스":POLY_RS,
+ "한국폴리텍대학 성남캠퍼스":POLY_RS,
+ "한국폴리텍대학 서울강서캠퍼스":POLY_RS,
  "경민대학교":{s1:"https://iphak.kyungmin.ac.kr:8081/assets/main/447e34c2e9d93f51ac14067469a88569.pdf",s2:"https://iphak.kyungmin.ac.kr:8081/assets/main/4b8d895d4edc555fbb411e6bf66b567f.pdf"},
  "동서울대학교":{all:"https://enter.du.ac.kr/submenu.do?menuUrl=LxZUaTFmmSi27DgQxWKW1A%3d%3d&"},
  "신구대학교":{all:"https://enter.shingu.ac.kr/cms/FR_CON/index.do?MENU_ID=100"},
