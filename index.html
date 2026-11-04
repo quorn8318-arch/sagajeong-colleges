@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.5 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>사가정역 전문대 통학길</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: 지하철 노선도처럼 왼쪽에 소요시간, 오른쪽에 학교 카드가 시간순으로 내려가는 한 줄 목록 */
+:root{
+  --bg:#f6f7f2; --surface:#ffffff; --fg:#1d2116; --muted:#5f6656; --line:#dfe2d6;
+  --l7:#747f00; --l7-soft:#eef0d6;
+  --busbg:#4a4f58;         /* 버스: 지하철 노선색에 없는 짙은 회색 */
+  --naver:#03a94f; --naver-fg:#ffffff;
+  --warn:#9a5b00; --warn-soft:#fbefd9;
+  --font:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14160f; --surface:#1d2017; --fg:#eceee4; --muted:#a3a993; --line:#33372a;
+  --l7:#b9c43a; --l7-soft:#2b2f15; --busbg:#6b7280;
+  --naver:#15c063; --naver-fg:#04210f; --warn:#f0b65c; --warn-soft:#33270f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14160f; --surface:#1d2017; --fg:#eceee4; --muted:#a3a993; --line:#33372a;
+  --l7:#b9c43a; --l7-soft:#2b2f15; --busbg:#6b7280;
+  --naver:#15c063; --naver-fg:#04210f; --warn:#f0b65c; --warn-soft:#33270f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.55}
+.wrap{max-width:860px;margin:0 auto;padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:grid;gap:10px;margin-bottom:22px}
+.origin{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--muted);font-size:14px}
+.dot7{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#747f00;color:#fff;font:600 12px var(--mono)}
+h1{margin:0;font-size:clamp(24px,5vw,32px);line-height:1.25;letter-spacing:-.01em;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:62ch}
+.controls{display:grid;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:18px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.row>.lab{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted);min-width:64px}
+.chip{border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:5px 12px;font:500 14px var(--font);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip:focus-visible,.btn:focus-visible,input:focus-visible{outline:2px solid var(--l7);outline-offset:2px}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--l7)}
+.maxval{font:600 15px var(--mono);min-width:56px;text-align:right}
+.count{font-size:14px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--muted);align-items:center}
+ol.list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.card{display:grid;grid-template-columns:76px 1fr;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.time{display:grid;align-content:start;justify-items:center;gap:2px;border-right:1px dashed var(--line);padding-right:12px}
+.time b{font:600 30px/1 var(--mono);font-variant-numeric:tabular-nums}
+.time small{font-size:12px;color:var(--muted)}
+.body{min-width:0;display:grid;gap:12px}
+.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px}
+.top h2{margin:0;font-size:18px;line-height:1.3}
+.region{font-size:13px;color:var(--muted)}
+.routes{display:grid;gap:10px}
+.route{display:grid;gap:6px}
+.route+.route{border-top:1px dashed var(--line);padding-top:10px}
+.rhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-size:13px;color:var(--muted)}
+.rhead .rn{font-weight:700;color:var(--fg);font-size:14px}
+.rhead .rt{font:600 14px var(--mono);color:var(--fg)}
+.rhead .fare{font:600 13px var(--mono);color:var(--fg);font-variant-numeric:tabular-nums}
+.rhead .fare::before{content:"요금 ";font-family:var(--font);font-weight:500;color:var(--muted)}
+.mode{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--fg);white-space:nowrap}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.steps li{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:start;font-size:14px}
+.tag{font-size:11px;font-weight:700;text-align:center;border-radius:4px;padding:2px 2px;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag.bus{background:var(--busbg);color:#fff}
+.note{font-size:13px;background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:6px 10px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font:600 14px var(--font);border-radius:8px;padding:8px 14px}
+.btn.naver{background:var(--naver);color:var(--naver-fg)}
+.btn.kakao{border:1px solid var(--line);color:var(--fg)}
+.btn.naver:hover{filter:brightness(1.05)}
+.btn.kakao:hover{background:var(--bg)}
+.btn.guide{background:var(--l7-soft);color:var(--l7);border:1px solid transparent}
+.btn.guide:hover{border-color:var(--l7)}
+.btn.result{border:1px dashed var(--l7);color:var(--l7)}
+.btn.result:hover{background:var(--l7-soft)}
+.time em{font-style:normal;font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-soft);border-radius:4px;padding:1px 5px;white-space:nowrap}
+.empty{padding:24px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:12px}
+section.out{margin-top:36px;display:grid;gap:10px}
+section.out h3{margin:0;font-size:16px}
+.outlist{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.outlist li{font-size:13px;border:1px solid var(--line);border-radius:8px;padding:4px 10px;background:var(--surface)}
+.outlist li b{font-family:var(--mono);font-weight:600}
+.meta{font-size:13px;color:var(--muted)}
+footer{margin-top:28px;font-size:13px;color:var(--muted);display:grid;gap:6px;max-width:70ch}
+@media (max-width:520px){
+  .card{grid-template-columns:1fr;gap:10px}
+  .time{grid-auto-flow:column;justify-content:start;align-items:baseline;gap:6px;border-right:0;border-bottom:1px dashed var(--line);padding:0 0 8px}
+  .time b{font-size:26px}
+  .steps li{grid-template-columns:64px 1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="origin"><span class="dot7">7</span>사가정역 출발 · 대중교통</span>
+    <h1>대중교통으로 통학할 만한 전문대 27곳</h1>
+    <p class="lede">카카오맵 대중교통 길찾기로 사가정역에서 각 학교까지 가는 경로를 확인했습니다. 갈 수 있는 방법이 여러 개면 빠른 순서대로 경로1, 경로2로 나눴고, 버튼을 누르면 같은 출발지·도착지로 네이버 길찾기가 열립니다. 1시간 30분 안에 갈 수 있는 20곳에, 조금 더 걸리는 7곳(청강문화산업대·경복대 포천캠퍼스·용인예술과학대·한국관광대·인하공업전문대·재능대·한림성심대)을 더했습니다. 여자대학과 예술대학은 뺐고, 용인예술과학대만 요청에 따라 넣었습니다.</p>
+  </header>
+
+  <div class="controls">
+    <div class="row">
+      <span class="lab">최대 시간</span>
+      <input type="range" id="maxMin" min="15" max="120" step="5" value="120" aria-label="최대 소요시간">
+      <span class="maxval" id="maxVal">120분</span>
+    </div>
+    <div class="row" id="modeRow">
+      <span class="lab">교통수단</span>
+      <button class="chip" data-mode="all" aria-pressed="true">전체</button>
+      <button class="chip" data-mode="bus" aria-pressed="false">버스만</button>
+      <button class="chip" data-mode="sub" aria-pressed="false">지하철만</button>
+      <button class="chip" data-mode="mix" aria-pressed="false">지하철+버스</button>
+    </div>
+    <div class="row" id="regionRow">
+      <span class="lab">지역</span>
+      <button class="chip" data-region="all" aria-pressed="true">전체</button>
+      <button class="chip" data-region="서울" aria-pressed="false">서울</button>
+      <button class="chip" data-region="경기" aria-pressed="false">경기</button>
+      <button class="chip" data-region="인천" aria-pressed="false">인천</button>
+      <button class="chip" data-region="강원" aria-pressed="false">강원</button>
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <span class="count" id="count"></span>
+      <span class="legend" id="legend"></span>
+    </div>
+  </div>
+
+  <ol class="list" id="list"></ol>
+
+  <section class="out">
+    <h3>조회하지 않은 학교</h3>
+    <p class="meta" style="margin:0">오산대·장안대·수원과학대·여주대·김포대·두원공대·신안산대·경기과학기술대·송곡대는 목록의 학교들보다 더 멀어서 따로 조회하지 않았습니다.</p>
+  </section>
+
+  <footer>
+    <span>조회일 2026년 11월 4일, 카카오맵 기준입니다. 출발 시각·배차에 따라 10분 안팎 달라질 수 있고, 네이버 지도는 경로 계산 방식이 달라 시간이 조금 다르게 나올 수 있습니다.</span>
+    <span>경로2부터는 "지하철만" 또는 "버스만" 쓸 때 가장 빠른 경로이며, 1시간 30분을 넘는 경로와 심야버스 경로는 적지 않았습니다. 지하철 칸은 그 구간에서 타는 노선의 색, 버스 칸은 회색입니다.</span>
+    <span>요금은 카카오맵이 보여 준 성인 교통카드 편도 요금입니다. 청소년은 할인되어 더 적게 나오고, 현금으로 내면 더 비쌉니다. "1,750~3,200원"처럼 범위로 적힌 곳은 같은 정류장에서 일반버스를 타느냐 광역(빨간)버스를 타느냐에 따라 달라지는 경우입니다.</span>
+    <span>전년도 결과 버튼은 각 학교 입학처에 올라온 2026학년도 입시결과 페이지로 연결됩니다. 1차·2차가 따로 있는 학교는 버튼을 둘로 나눴고, 한 페이지에 모아 둔 학교는 "전년도 입시결과" 하나만 있습니다. 경민대·농협대·폴리텍은 입학처에서 결과 페이지를 찾지 못해 버튼이 없습니다.</span>
+    <span>모집요강 버튼은 각 학교 입학처 페이지로 연결됩니다. "수시2차 모집요강"은 2차 전용 페이지이고, "수시 모집요강"은 1·2차가 한 요강에 들어 있거나 모집요강 메인 페이지라 그 안에서 2차 내용을 찾아야 합니다. 폴리텍 3개 캠퍼스는 폴리텍 입시포털의 통합 모집요강으로, 농협대는 학교 입학안내 페이지로 연결됩니다.</span>
+  </footer>
+</div>
+
+<script>
+const START={name:"사가정역",lat:37.580657,lng:127.088462};
+// 수도권 지하철 공식 노선색 [표시 이름, 배경색, 글자색]
+const LINES={
+ "1":["1호선","#0052A4","#fff"],"2":["2호선","#00A84D","#fff"],"3":["3호선","#EF7C1C","#fff"],
+ "4":["4호선","#00A5DE","#fff"],"5":["5호선","#996CAC","#fff"],"6":["6호선","#CD7C2F","#fff"],
+ "7":["7호선","#747F00","#fff"],"8":["8호선","#E6186C","#fff"],"9":["9호선","#BDB092","#1d2116"],
+ "GJ":["경의중앙선","#77C4A3","#10291f"],"GC":["경춘선","#0C8E72","#fff"],"GG":["경강선","#0054A6","#fff"],
+ "SU":["수인분당선","#F5A200","#2a1c00"],"EV":["에버라인","#509F22","#fff"],"SB":["신분당선","#D4003B","#fff"],"UI":["의정부경전철","#FDA600","#2a1c00"]
+};
+// 각 학교 routes: t=분, m=bus|sub|mix, w=걷는 시간, x=환승 횟수, s=구간 [노선키 또는 "b", 설명]
+const D=[
+ {n:"서일대학교",r:"서울 중랑구",lat:37.586601,lng:127.097786,routes:[
+  {t:12,m:"bus",w:6,x:0,f:"1,500원",s:[["b","2230·2212번 · 사가정역4번출구.사가정시장 → 용마문화복지센터.서일대후문"]]}]},
+ {n:"삼육보건대학교",r:"서울 동대문구",lat:37.589023,lng:127.065994,routes:[
+  {t:28,m:"mix",w:14,x:1,f:"1,550원",s:[["7","사가정 → 상봉"],["b","272번 · 상봉역3번출구 → 삼육서울병원.삼육보건대학교"]]},
+  {t:28,m:"sub",w:20,x:1,f:"1,550원",s:[["7","사가정 → 상봉"],["GJ","상봉 → 회기 (급행)"]]},
+  {t:34,m:"bus",w:13,x:0,f:"1,500원",s:[["b","272번 · 사가정역.국민건강보험공단중랑지사 → 삼육서울병원.삼육보건대학교"]]}]},
+ {n:"인덕대학교",r:"서울 노원구",lat:37.631304,lng:127.054326,routes:[
+  {t:33,m:"mix",w:14,x:1,f:"1,550원",s:[["7","사가정 → 하계"],["b","100·172·111번 · 하계우성아파트 → 인덕대학교후문입구"]]},
+  {t:37,m:"sub",w:21,x:2,f:"1,550원",s:[["7","사가정 → 태릉입구"],["6","태릉입구 → 석계"],["1","석계 → 월계"]]},
+  {t:55,m:"bus",w:22,x:1,f:"1,500원",s:[["b","2311·2112·2233번 · 사가정역 → 장안동현대아파트앞"],["b","145·1218번 → 월계2교"]]}]},
+ {n:"한국폴리텍대학 서울정수캠퍼스",r:"서울 용산구",lat:37.529151,lng:126.996084,
+  note:"폴리텍은 일반 전문대와 원서 접수 일정이 따로 있습니다.",routes:[
+  {t:38,m:"mix",w:11,x:3,f:"1,650원",s:[["7","사가정 → 군자"],["5","군자 → 청구"],["6","청구 → 이태원"],["b","400·405·421번 · 이태원역.보광동입구 → 한국폴리텍1대학"]]},
+  {t:43,m:"sub",w:18,x:2,f:"1,650원",s:[["7","사가정 → 군자"],["5","군자 → 청구"],["6","청구 → 이태원"]]}]},
+ {n:"한국폴리텍대학 성남캠퍼스",r:"경기 성남시",lat:37.459028,lng:127.153912,
+  note:"폴리텍은 일반 전문대와 원서 접수 일정이 따로 있습니다.",routes:[
+  {t:48,m:"mix",w:11,x:4,f:"1,850원",s:[["7","사가정 → 군자"],["5","군자 → 천호"],["8","천호 → 남위례"],["b","60·210번 · 남위례역 → 남위례역.복정지구"],["b","452·55번 → 한국폴리텍대학"]]},
+  {t:51,m:"sub",w:18,x:2,f:"1,750원",s:[["7","사가정 → 군자"],["5","군자 → 천호"],["8","천호 → 산성"]]},
+  {t:88,m:"bus",w:19,x:1,f:"1,700원",s:[["b","320번 · 면목동금호어울림아파트 → 복정역환승센터"],["b","452번 → 한국폴리텍대학.성남문화예술교육센터"]]}]},
+ {n:"동서울대학교",r:"경기 성남시",lat:37.459152,lng:127.128356,routes:[
+  {t:49,m:"mix",w:17,x:3,f:"1,750~3,200원",s:[["7","사가정 → 군자"],["5","군자 → 천호"],["8","천호 → 장지"],["b","303·452·302번 등 · 장지동 → 동서울대학교"]]},
+  {t:59,m:"sub",w:30,x:2,f:"1,750원",s:[["7","사가정 → 군자"],["5","군자 → 천호"],["8","천호 → 복정"]]},
+  {t:74,m:"bus",w:15,x:1,f:"3,200원",s:[["b","320번 · 면목동금호어울림아파트 → 문정법조단지.건영아파트"],["b","1117·500-1번 → 동서울대학교"]]}]},
+ {n:"경민대학교",r:"경기 의정부시",lat:37.745480,lng:127.023849,routes:[
+  {t:50,m:"mix",w:16,x:1,f:"1,750~3,200원",s:[["7","사가정 → 도봉산"],["b","1108번 등 · 도봉산역 → 안골.롯데캐슬골드포레"]]},
+  {t:66,m:"sub",w:32,x:2,f:"1,950원",s:[["7","사가정 → 도봉산"],["1","도봉산 → 회룡 (급행)"],["UI","회룡 → 흥선"]]},
+  {t:86,m:"bus",w:17,x:1,f:"3,200원",s:[["b","2230번 · 사가정역 → 청량리역환승센터"],["b","1108번 → 안골.롯데캐슬골드포레"]]}]},
+ {n:"신구대학교",r:"경기 성남시",lat:37.448536,lng:127.168329,routes:[
+  {t:58,m:"mix",w:14,x:3,f:"1,950원",s:[["7","사가정 → 군자"],["5","군자 → 천호"],["8","천호 → 남한산성입구"],["b","55·33-1번 · 남한산성입구역 → 신구대학사거리"]]},
+  {t:66,m:"sub",w:28,x:2,f:"1,850원",s:[["7","사가정 → 군자"],["5","군자 → 천호"],["8","천호 → 단대오거리"]]}]},
+ {n:"경복대학교 남양주캠퍼스",r:"경기 남양주시",lat:37.735362,lng:127.210565,routes:[
+  {t:60,m:"mix",w:18,x:2,f:"2,050~3,200원",s:[["7","사가정 → 노원"],["4","노원 → 진접"],["b","2000·105번 등 · 진접역 → 경복대(광역)"]]}]},
+ {n:"서정대학교",r:"경기 양주시",lat:37.857113,lng:127.038211,routes:[
+  {t:63,m:"mix",w:8,x:2,f:"2,150원",s:[["7","사가정 → 도봉산"],["1","도봉산 → 덕정 (급행)"],["b","91번 · 덕정역 → 서정대학교본관"]]}]},
+ {n:"명지전문대학",r:"서울 서대문구",lat:37.584429,lng:126.925145,
+  note:"명지대와 통합이 진행 중이라 올해 모집 단위를 학교 홈페이지에서 꼭 확인하세요.",routes:[
+  {t:71,m:"mix",w:10,x:2,f:"1,850원",s:[["7","사가정 → 건대입구"],["2","건대입구 → 홍대입구"],["b","7734번 · 홍대입구역 → 명지전문대.충암중고"]]},
+  {t:82,m:"sub",w:31,x:2,f:"1,850원",s:[["7","사가정 → 군자"],["5","군자 → 청구"],["6","청구 → 새절"]]}]},
+ {n:"유한대학교",r:"경기 부천시",lat:37.487058,lng:126.821178,routes:[
+  {t:71,m:"mix",w:7,x:1,f:"2,150원",s:[["7","사가정 → 온수"],["b","52번 · 온수남부 → 유한대학교"]]},
+  {t:76,m:"sub",w:17,x:0,f:"1,950원",s:[["7","사가정 → 온수 (갈아타지 않고 한 번에)"]]}]},
+ {n:"동양미래대학교",r:"서울 구로구",lat:37.501113,lng:126.867027,routes:[
+  {t:72,m:"sub",w:24,x:2,f:"1,950원",s:[["7","사가정 → 상봉"],["GJ","상봉 → 용산 (급행)"],["1","용산 → 구일"]]}]},
+ {n:"농협대학교",r:"경기 고양시",lat:37.659538,lng:126.872700,routes:[
+  {t:74,m:"mix",w:17,x:3,f:"2,050원",s:[["7","사가정 → 군자"],["5","군자 → 종로3가"],["3","종로3가 → 원흥"],["b","043번 · 원흥역 → 농협대학교"]]},
+  {t:89,m:"sub",w:36,x:2,f:"1,950원",s:[["7","사가정 → 군자"],["5","군자 → 종로3가"],["3","종로3가 → 원흥"]]}]},
+ {n:"한국폴리텍대학 서울강서캠퍼스",r:"서울 강서구",lat:37.549704,lng:126.842410,
+  note:"폴리텍은 일반 전문대와 원서 접수 일정이 따로 있습니다.",routes:[
+  {t:74,m:"mix",w:20,x:2,f:"1,950원",s:[["7","사가정 → 고속터미널"],["9","고속터미널 → 가양 (급행)"],["b","6645번 · 가양역 → 우장산동주민센터"]]},
+  {t:77,m:"sub",w:19,x:1,f:"1,950원",s:[["7","사가정 → 군자"],["5","군자 → 우장산"]]}]},
+ {n:"대림대학교",r:"경기 안양시",lat:37.403524,lng:126.930499,routes:[
+  {t:78,m:"mix",w:14,x:2,f:"2,250원",s:[["7","사가정 → 가산디지털단지"],["1","가산디지털단지 → 안양 (급행)"],["b","3번 · 안양역후문 → 대림대학교"]]},
+  {t:84,m:"sub",w:25,x:1,f:"2,150원",s:[["7","사가정 → 가산디지털단지"],["1","가산디지털단지 → 안양 (급행)"]]}]},
+ {n:"동남보건대학교",r:"경기 수원시",lat:37.298006,lng:126.987000,routes:[
+  {t:79,m:"mix",w:8,x:4,f:"5,200원",s:[["7","사가정 → 논현"],["SB","논현 → 양재시민의숲"],["b","3102·G1003번 → 의왕톨게이트"],["b","7780·1009번 → 풍림아파트"],["b","62-1·112번 → 동남보건대"]]}]},
+ {n:"부천대학교",r:"경기 부천시",lat:37.489425,lng:126.778718,routes:[
+  {t:81,m:"sub",w:23,x:2,f:"2,050원",s:[["7","사가정 → 상봉"],["GJ","상봉 → 용산 (급행)"],["1","용산 → 부천 (급행)"]]}]},
+ {n:"안산대학교",r:"경기 안산시",lat:37.308866,lng:126.875798,routes:[
+  {t:86,m:"mix",w:11,x:2,f:"2,450원",s:[["7","사가정 → 총신대입구(이수)"],["4","총신대입구 → 상록수 (급행)"],["b","171번 · 상록수역 → 안산대운동장"]]}]},
+ {n:"연성대학교",r:"경기 안양시",lat:37.397096,lng:126.908537,routes:[
+  {t:90,m:"mix",w:20,x:2,f:"2,250원",s:[["7","사가정 → 가산디지털단지"],["1","가산디지털단지 → 안양 (급행)"],["b","1번 · 안양역 → 안양3동행정복지센터"]]}]},
+ {n:"청강문화산업대학교",r:"경기 이천시",lat:37.205854,lng:127.356153,routes:[
+  {t:91,m:"mix",w:10,x:3,f:null,s:[["7","사가정 → 논현"],["SB","논현 → 양재시민의숲"],["b","3401번 · 매헌시민의숲.양재꽃시장 → 덕평1리"],["b","8801번 → 청강문화산업대"]]}]},
+ {n:"경복대학교 포천캠퍼스",r:"경기 포천시",lat:37.947147,lng:127.223327,routes:[
+  {t:98,m:"mix",w:20,x:3,f:null,s:[["7","사가정 → 건대입구"],["2","건대입구 → 강변(동서울터미널)"],["b","3000·3001-1번 · 동서울터미널 → 신읍7통.기업은행앞"],["b","3006번 → 경복대.포천캠퍼스입구"]]}]},
+ {n:"용인예술과학대학교",r:"경기 용인시",lat:37.228650,lng:127.218859,routes:[
+  {t:105,m:"mix",w:21,x:4,f:"5,500원",s:[["7","사가정 → 논현"],["SB","논현 → 양재시민의숲"],["b","5001·5003번 등 · 매헌시민의숲.양재꽃시장 → 기흥역"],["EV","기흥 → 용인중앙시장"],["b","5002·5700번 등 → 용인예술과학대학교"]]},
+  {t:117,m:"sub",w:42,x:3,f:"4,150원",s:[["7","사가정 → 논현"],["SB","논현 → 정자"],["SU","정자 → 기흥 (급행)"],["EV","기흥 → 용인중앙시장"]]}]},
+ {n:"한국관광대학교",r:"경기 이천시",lat:37.282464,lng:127.376016,routes:[
+  {t:106,m:"mix",w:17,x:4,f:"4,350원",s:[["7","사가정 → 논현"],["SB","논현 → 판교"],["GG","판교 → 신둔도예촌"],["b","240번 · 신둔도예촌역 → 사음2동.동일냉장"],["b","24-7번 → 한국관광대학"]]}]},
+ {n:"인하공업전문대학",r:"인천 미추홀구",lat:37.448251,lng:126.658038,routes:[
+  {t:108,m:"mix",w:12,x:2,f:"5,500원",s:[["7","사가정 → 논현"],["SB","논현 → 양재시민의숲"],["b","9200번 · 매헌시민의숲.양재꽃시장 → 장미아파트.학익초등학교"]]},
+  {t:116,m:"sub",w:29,x:4,f:"2,450원",s:[["7","사가정 → 상봉"],["GJ","상봉 → 용산 (급행)"],["1","용산 → 동인천 (급행)"],["1","동인천 → 인천"],["SU","인천 → 인하대"]]}]},
+ {n:"재능대학교",r:"인천 동구",lat:37.474846,lng:126.651163,routes:[
+  {t:108,m:"mix",w:17,x:3,f:"2,350원",s:[["7","사가정 → 온수"],["1","온수 → 역곡"],["1","역곡 → 제물포 (급행)"],["b","63번 · 제물포역 → 재능대학교서문"]]},
+  {t:113,m:"sub",w:36,x:3,f:"2,350원",s:[["7","사가정 → 상봉"],["GJ","상봉 → 용산 (급행)"],["1","용산 → 제물포 (급행)"],["1","제물포 → 도원"]]}]},
+ {n:"한림성심대학교",r:"강원 춘천시",lat:37.899185,lng:127.755653,
+  note:"요금에 경춘선 급행 열차 요금이 들어 있습니다. 일반 열차를 타면 더 싸지만 더 오래 걸립니다.",routes:[
+  {t:112,m:"mix",w:20,x:2,f:"4,800원",s:[["7","사가정 → 상봉"],["GC","상봉 → 춘천 (급행)"],["b","100-1번 · 춘천역육교앞 → 장학해온채A"]]}]}
+];
+const MODE={bus:"버스만",sub:"지하철만",mix:"지하철+버스"};
+// 학교 입학처 모집요강 페이지. true = 수시2차 전용 페이지, false = 수시 통합(또는 모집요강 메인) 페이지
+const POLY="https://ipsi.kopo.ac.kr/poly/m_112/content.do";
+const Y={
+ "서일대학교":["https://www.seoil.ac.kr/ipsi/697/subview.do",true],
+ "삼육보건대학교":["https://exam.shu.ac.kr/cms/FrCon/index.do?MENU_ID=30",false],
+ "인덕대학교":["https://ipsi.induk.ac.kr/IPSI/cms/CM_PV01_CON/CM_PV01_V01.do?MENU_SN=72",true],
+ "한국폴리텍대학 서울정수캠퍼스":[POLY,false],
+ "한국폴리텍대학 성남캠퍼스":[POLY,false],
+ "한국폴리텍대학 서울강서캠퍼스":[POLY,false],
+ "동서울대학교":["https://enter.du.ac.kr/submenu.do?ord=2&menuUrl=AelSWjPhedMv%2bAZA2NXqDg%3d%3d",true],
+ "경민대학교":["https://iphak.kyungmin.ac.kr/category/1",false],
+ "신구대학교":["https://enter.shingu.ac.kr/cms/FR_CON/index.do?MENU_ID=10",false],
+ "경복대학교 남양주캠퍼스":["https://kbu.ac.kr/efms/CMS/Contents/Contents.do?mCode=MN034",false],
+ "서정대학교":["https://www.seojeong.ac.kr/iphak/admission/recruitment-susi02.do?srCategoryId=156",true],
+ "명지전문대학":["https://ipsi.mjc.ac.kr/recruit/list.do?menu_idx=1804",true],
+ "유한대학교":["https://sky.yuhan.ac.kr/prospectus.do?menu_idx=4034&gubun=25",true],
+ "동양미래대학교":["https://ipsi.dongyang.ac.kr/dongyang_ipsi/507/subview.do",true],
+ "농협대학교":["https://www.nonghyup.ac.kr/n_sub02/sub01-02/sub01.asp",false],
+ "대림대학교":["https://ent.daelim.ac.kr/cms/FrCon/index.do?MENU_ID=1070",false],
+ "동남보건대학교":["https://ipsi.dongnam.ac.kr/ipsi/1558/subview.do",true],
+ "부천대학교":["https://ipsi.bc.ac.kr/ipsi/susi02/guide.do",true],
+ "안산대학교":["https://iphak.ansan.ac.kr/iphak/ipsi_guideline/01",true],
+ "연성대학교":["https://ipsi.yeonsung.ac.kr/ipsi/cust/cnts/index.do?&menuId=MN000000000000035&subMenuId=MN000000000000957&menuAuth=&paramContentsId=MC000000000003668",false],
+ "청강문화산업대학교":["https://ipsi.ck.ac.kr/bbs/link.php?bo_table=bl_school_info&wr_id=1&no=1",false],
+ "경복대학교 포천캠퍼스":["https://kbu.ac.kr/efms/CMS/Contents/Contents.do?mCode=MN034",false],
+ "용인예술과학대학교":["https://www.yc.ac.kr/enter/susi2-guide.do",true],
+ "한국관광대학교":["http://iphak.ktc.ac.kr/page/admissions/info",false],
+ "인하공업전문대학":["https://ipsi.inhatc.ac.kr/ipsi/362/subview.do",true],
+ "재능대학교":["https://apply.jeiu.ac.kr:4443/apply/pdf.do?menuSeq=43",false],
+ "한림성심대학교":["https://ipsi.hsc.ac.kr/ipsi/contents.do?key=1436",false]
+};
+// 전년도(2026학년도) 입시결과. s1=수시1차, s2=수시2차, all=한 페이지에 모아 둔 곳
+const KBU={s1:"https://kbu.ac.kr/efms/CMS/Contents/Contents.do?mCode=MN162",s2:"https://kbu.ac.kr/efms/CMS/Contents/Contents.do?mCode=MN163"};
+const RS={
+ "서일대학교":{s1:"https://www.seoil.ac.kr/bbs/ipsi/164/406157/artclView.do",s2:"https://www.seoil.ac.kr/bbs/ipsi/164/406160/artclView.do"},
+ "삼육보건대학교":{s1:"https://exam.shu.ac.kr/cms/FrCon/index.do?MENU_ID=250",s2:"https://exam.shu.ac.kr/cms/FrCon/index.do?MENU_ID=260"},
+ "인덕대학교":{s1:"https://ipsi.induk.ac.kr/IPSI/cms/CM_CN01_CON/index.do?MENU_SN=243",s2:"https://ipsi.induk.ac.kr/IPSI/cms/CM_CN01_CON/index.do?MENU_SN=244"},
+ "동서울대학교":{all:"https://enter.du.ac.kr/submenu.do?menuUrl=LxZUaTFmmSi27DgQxWKW1A%3d%3d&"},
+ "신구대학교":{all:"https://enter.shingu.ac.kr/cms/FR_CON/index.do?MENU_ID=100"},
+ "경복대학교 남양주캠퍼스":KBU,
+ "경복대학교 포천캠퍼스":KBU,
+ "서정대학교":{all:"https://www.seojeong.ac.kr/iphak/admission-info/results-of-the-previous-years.do"},
+ "명지전문대학":{all:"https://ipsi.mjc.ac.kr/bbs/data/list.do?per_menu_idx=1855&menu_idx=1856&tabCnt=4"},
+ "유한대학교":{s1:"https://sky.yuhan.ac.kr/preResult.do?menu_idx=4011&gubun=15",s2:"https://sky.yuhan.ac.kr/preResult.do?menu_idx=4039&gubun=25"},
+ "동양미래대학교":{s1:"https://ipsi.dongyang.ac.kr/dongyang_ipsi/2887/subview.do",s2:"https://ipsi.dongyang.ac.kr/dongyang_ipsi/2888/subview.do"},
+ "대림대학교":{s1:"https://ent.daelim.ac.kr/cms/FrCon/index.do?MENU_ID=3420",s2:"https://ent.daelim.ac.kr/cms/FrCon/index.do?MENU_ID=3430"},
+ "동남보건대학교":{all:"https://ipsi.dongnam.ac.kr/ipsi/5639/subview.do"},
+ "부천대학교":{s1:"https://ipsi.bc.ac.kr/ipsi/susi01/results-application-2026-s1.do",s2:"https://ipsi.bc.ac.kr/ipsi/susi02/results-application-2026-s2.do"},
+ "안산대학교":{s1:"https://iphak.ansan.ac.kr/iphak/content/11",s2:"https://iphak.ansan.ac.kr/iphak/content/12"},
+ "연성대학교":{all:"https://ipsi.yeonsung.ac.kr/ipsi/cust/cnts/index.do?&menuId=MN000000000000035&subMenuId=MN000000000000957&menuAuth=&paramContentsId=MC000000000003668",label:"전년도 입시결과 (요강 붙임4)"},
+ "청강문화산업대학교":{all:"https://ipsi.ck.ac.kr/bbs/board.php?bo_table=notice&wr_id=882"},
+ "용인예술과학대학교":{s1:"https://www.yc.ac.kr/enter/susi1-result-in.do",s2:"https://www.yc.ac.kr/enter/susi2-result-in.do"},
+ "한국관광대학교":{all:"http://iphak.ktc.ac.kr/page/admissions/resultPreYear"},
+ "인하공업전문대학":{all:"https://ipsi.inhatc.ac.kr/ipsi/406/subview.do"},
+ "재능대학교":{all:"https://apply.jeiu.ac.kr:4443/apply/applyResult.do"},
+ "한림성심대학교":{all:"https://ipsi.hsc.ac.kr/ipsi/contents.do?key=5072"}
+};
+function resultBtns(n){const r=RS[n];if(!r)return"";const b=(u,l)=>`<a class="btn result" href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`;
+  return r.all?b(r.all,r.label||"전년도 입시결과"):(r.s1?b(r.s1,"전년도 1차 결과"):"")+(r.s2?b(r.s2,"전년도 2차 결과"):"")}
+// 네이버 지도는 웹 메르카토르(EPSG:3857) 좌표를 씁니다
+function merc(lat,lng){const R=6378137;return[(lng*Math.PI/180*R).toFixed(1),(Math.log(Math.tan(Math.PI/4+lat*Math.PI/360))*R).toFixed(1)]}
+function naverUrl(c){const[sx,sy]=merc(START.lat,START.lng),[ex,ey]=merc(c.lat,c.lng);
+  return`https://map.naver.com/p/directions/${sx},${sy},${encodeURIComponent(START.name)},,ADDRESS_POI/${ex},${ey},${encodeURIComponent(c.n)},,ADDRESS_POI/-/transit`}
+function kakaoUrl(c){return`https://map.kakao.com/link/by/traffic/${encodeURIComponent(START.name)},${START.lat},${START.lng}/${encodeURIComponent(c.n)},${c.lat},${c.lng}`}
+function esc(s){return s.replace(/[&<>"]/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]))}
+function tag(k){if(k==="b")return'<span class="tag bus">버스</span>';
+  const[l,bg,fg]=LINES[k];return`<span class="tag" style="background:${bg};color:${fg}" title="${l}">${l}</span>`}
+// 범례: 이 페이지에 나오는 노선만
+(function(){const used=new Set();D.forEach(c=>c.routes.forEach(r=>r.s.forEach(([k])=>used.add(k))));
+  document.getElementById("legend").innerHTML=Object.keys(LINES).filter(k=>used.has(k)).map(tag).join("")+tag("b")})();
+const st={max:120,mode:"all",region:"all"};
+function render(){
+  const list=document.getElementById("list");
+  const rows=D.filter(c=>(st.region==="all"||c.r.startsWith(st.region))&&c.routes.some(r=>r.t<=st.max&&(st.mode==="all"||r.m===st.mode)));
+  document.getElementById("count").textContent=`${rows.length}곳 표시 중`;
+  if(!rows.length){list.innerHTML='<li class="empty">조건에 맞는 학교가 없어요. 최대 시간을 늘리거나 필터를 바꿔 보세요.</li>';return}
+  list.innerHTML=rows.map(c=>{
+    const multi=c.routes.length>1;
+    return`
+  <li class="card">
+    <div class="time${c.routes[0].t>90?" over":""}"><b>${c.routes[0].t}</b><small>분</small>${c.routes[0].t>90?'<em>90분 넘음</em>':""}</div>
+    <div class="body">
+      <div class="top"><h2>${esc(c.n)}</h2><span class="region">${c.r}</span></div>
+      <div class="routes">${c.routes.map((r,i)=>`
+        <div class="route">
+          <div class="rhead">${multi?`<span class="rn">경로${i+1}</span>`:""}<span class="rt">${r.t}분</span><span class="mode">${MODE[r.m]}</span><span class="fare">${r.f||"정보 없음"}</span><span>걸어서 ${r.w}분 · 환승 ${r.x?r.x+"회":"없음"}</span></div>
+          <ol class="steps">${r.s.map(([k,txt])=>`<li>${tag(k)}<span>${esc(txt)}</span></li>`).join("")}</ol>
+        </div>`).join("")}
+      </div>
+      ${c.note?`<div class="note">${esc(c.note)}</div>`:""}
+      <div class="btns">
+        <a class="btn naver" href="${naverUrl(c)}" target="_blank" rel="noopener">네이버 길찾기</a>
+        <a class="btn kakao" href="${kakaoUrl(c)}" target="_blank" rel="noopener">카카오맵</a>
+        ${Y[c.n]?`<a class="btn guide" href="${esc(Y[c.n][0])}" target="_blank" rel="noopener">${Y[c.n][1]?"수시2차 모집요강":"수시 모집요강"}</a>`:""}
+        ${resultBtns(c.n)}
+      </div>
+    </div>
+  </li>`}).join("");
+}
+const range=document.getElementById("maxMin");
+range.addEventListener("input",()=>{st.max=+range.value;document.getElementById("maxVal").textContent=range.value+"분";render()});
+function chips(rowId,key,attr){document.getElementById(rowId).addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
+  st[key]=b.dataset[attr];document.querySelectorAll(`#${rowId} .chip`).forEach(x=>x.setAttribute("aria-pressed",x===b));render()})}
+chips("modeRow","mode","mode");chips("regionRow","region","region");
+render();
+</script>
+</body>
+</html>
